@@ -1,0 +1,17 @@
+extends: base.yaml
+config_id: C
+name: sd15_lora_hitech
+model_id: stable-diffusion-v1-5/stable-diffusion-v1-5
+dtype: float32
+lora:
+  id: artificialguybr/3d-redmond-1-5v-3d-render-style-for-liberte-redmond-sd-1-5
+  weight_name: 3DRedmond15V-LiberteRedmond-3DRenderStyle-3DRenderAF.safetensors
+  adapter_name: hitech_3drender
+  trigger_words: "3D Render Style, 3DRenderAF"
+  trigger_words_short: "3D Render Style"
+resolution:
+  width: 512
+  height: 768
+sweep_overrides:
+  scheduler: [dpmpp_2m]
+  lora_scale: [0.4, 0.7, 1.0]

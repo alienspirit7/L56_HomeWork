@@ -1,0 +1,10 @@
+venv/
+output/images/
+!output/analysis/
+__pycache__/
+*.pyc
+*.safetensors
+.DS_Store
+.pytest_cache/
+input/init_512.png
+input/init_1024.png

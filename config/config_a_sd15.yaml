@@ -1,0 +1,10 @@
+extends: base.yaml
+config_id: A
+name: sd15_baseline
+model_id: stable-diffusion-v1-5/stable-diffusion-v1-5
+dtype: float32
+resolution:
+  width: 512
+  height: 768
+sweep_overrides:
+  scheduler: [ddim, dpmpp_2m]

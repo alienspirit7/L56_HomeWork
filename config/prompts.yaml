@@ -1,0 +1,15 @@
+prompt: |
+  overhead flat-lay marketing hero shot, food photography campaign, a person's
+  hand holding a modern matte smartphone and photographing a single beautifully
+  plated dinner of grilled salmon, roasted vegetables and brown rice on a
+  pristine white marble counter, the phone visible in the frame capturing the
+  food, soft directional daylight from upper-left, gentle long shadows, glossy
+  textures, shallow depth of field, Apple-keynote editorial aesthetic,
+  ultra-detailed, 8k food product photography
+
+negative_prompt: |
+  blurry, low quality, watermark, signature, text artefacts, distorted hands,
+  extra fingers, extra limbs, oversaturated, washed out, unappetising,
+  plastic-looking food, clinical hospital setting, syringe, needle, blood,
+  pills, vintage, retro, sepia, grainy film, jpeg artefacts, deformed,
+  cluttered, multiple plates, two phones, multiple phones
