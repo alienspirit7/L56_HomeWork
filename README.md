@@ -268,7 +268,7 @@ After pivoting to text2img the prompt asked for a person *photographing* food, w
 
 Iteration tried first to reframe the overlay as a white-bordered UI callout card anchored to the right edge of the canvas. This removed the "two phones" artefact but exposed a deeper problem: the overlay placement was interacting with the model's composition. Wherever the card landed, it occluded part of the scene the model had drawn — and the *fairness* of the cross-config comparison depended on the card landing somewhere innocuous in each one. That was not true uniformly, and tuning the overlay box to be innocuous-in-A was making it occlude-the-hero in B.
 
-The honest fix was to drop the overlay entirely. This project compares **scene generation**; UI accuracy is the L41_HomeWork project's job. The L41 screenshot remains in `input/` as historical reference, and `src/evaluation/overlay.py` is kept as historical code for anyone who wants to inspect the pivot, but no path in the current pipeline calls it. The 6 champion images in `screenshots/` and the comparison panels in `output/analysis/` (those that were re-rendered) show only what each model actually drew.
+The honest fix was to drop the overlay **from the comparison**. This project compares **scene generation**; UI accuracy is the L41_HomeWork project's job. The 6 champion images in `screenshots/` therefore show only what each model actually drew — no compositing. The L41 UI overlay is still used in one place: §8, the *single* final marketing artefact, which is what the PRD was originally asking for. `src/evaluation/overlay.py` is kept and is called by `scripts/make_marketing_composite.py`.
 
 ### CLIP truncates the prompt
 
@@ -284,4 +284,20 @@ Three things, none of which were obvious before running the sweep:
 
 ---
 
-**Reproducibility note.** Every result above is derivable from `output/param_log.jsonl` and the seeds/configs checked into `config/`. A fresh clone, `pip install -r requirements.txt`, and `python scripts/run_smoke.py` should reproduce the smoke set; `python scripts/run_sweep.py` reproduces the full 108-image sweep. The qualitative claims in §5 each cite a specific PNG by filename so any line can be re-verified by opening the named file.
+## 8. The actual marketing deliverable
+
+The PRD asked for "a marketing ad for the L41_HomeWork app". §5 compares the three generative configs on scene generation — that comparison deliberately uses *raw, overlay-free* outputs so each model can be judged fairly. The ad itself is the single composite below: the strongest scene (B1 — SDXL champion) with the **real L41 carb-analysis UI** placed beside it as a callout card.
+
+![Final marketing composite — SDXL champion + L41 UI callout](screenshots/marketing_ad_final.png)
+
+Why this is the deliverable rather than a raw champion:
+
+- **The base scene must show that the product is about food being photographed.** B1 is the strongest of the six on that dimension (despite the right-hand chopstick defect, §5.7) — multiple plates, salmon hero, hand-with-phone composition.
+- **The numbers must be real.** Carb / protein / fat totals, per-dish breakdowns, the "Active Carbs" readout — these come from the actual L41 prototype (see `input/ui_screenshot.png`) and are pasted in pixel-accurate. No diffusion model will reliably render numerical UI; baking the real UI in is the only way to keep an ad honest about what the app does.
+- **The composite is hand-curated, not part of the sweep.** It is one image, not 108. Built by `scripts/make_marketing_composite.py` from B1 + the L41 screenshot via `src/evaluation/overlay.py`. Reproducible from a fresh clone.
+
+The defects in §5.7 still apply to the base scene (chopstick grip, etc.) — those are the price of single-prompt generation without retouching. A production pipeline would inpaint the hand. This project stops at "best a single-pass diffusion sweep can do, plus a real UI for the numbers".
+
+---
+
+**Reproducibility note.** Every result above is derivable from `output/param_log.jsonl` and the seeds/configs checked into `config/`. A fresh clone, `pip install -r requirements.txt`, and `python scripts/run_smoke.py` should reproduce the smoke set; `python scripts/run_sweep.py` reproduces the full 108-image sweep; `python scripts/regenerate_champions.py` reproduces the 6 overlay-free champions; `python scripts/make_marketing_composite.py` reproduces the §8 marketing composite. The qualitative claims in §5 each cite a specific PNG by filename so any line can be re-verified by opening the named file.
