@@ -137,21 +137,21 @@ Three numbers do the most work in the comparison:
 
 ### 5.2 Matched comparison — same seed, same params, three models
 
-At identical guidance, steps, seed, scheduler, and prompt across all three configs, the differences land on three axes — composition, production value, and aesthetic. The matched champions are shown one-per-config in §5.3–5.5 below; the contact sheets in `output/analysis/contact_*.png` and the axis grids in `output/analysis/axis_*.png` cover the rest of the sweep.
+At identical guidance, steps, seed, scheduler, and prompt across all three configs, the differences land on three axes — composition, production value, and aesthetic. **None of the three is usable as-is for a real ad; all six champions have visible generative defects.** Honest per-image critique lives in §5.7. The champions are shown one-per-config in §5.3–5.5; contact sheets in `output/analysis/contact_*.png` and axis grids in `output/analysis/axis_*.png` cover the rest of the sweep.
 
-- **A (SD 1.5)** produces a coherent overhead flat-lay. Composition is correct; production value is modest.
-- **B (SDXL)** lifts the same prompt to a magazine spread: cutlery, oil bowl, herb garnish, lemon wedges, hand-with-phone as the hero element. This is what 4.6× the compute buys.
-- **C (SD 1.5 + LoRA at scale 0.7)** swings the aesthetic — dark serving tray, glossy 3D-render lighting, saturated greens. Same base model as A, but unmistakably a different look.
+- **A (SD 1.5)** produces a coherent overhead flat-lay, but the phone screen shows content unrelated to the food the phone is pointed at, and the on-phone "app" is just a fullscreen photo — no UI chrome at all.
+- **B (SDXL)** produces a richer scene (cutlery, oil bowl, herb garnish, lemon wedges) and is the *closest* to a usable shot, but the right-hand grip — chopsticks (B1) or simultaneously holding a fork and a knife (B2) — is anatomically wrong.
+- **C (SD 1.5 + LoRA at scale 0.7)** swings the aesthetic toward dark-tray 3D product photography, but loses scene coherence: the top-right "side dish" reads as raw grains or seeds rather than a prepared component, and the phone screen content again doesn't match the food.
 
 ### 5.3 Config A — SD 1.5 baseline
 
 ![A — SD 1.5 baseline, guidance 7.5, 30 steps, seed 42, DPM++ 2M](screenshots/champion_A_sd15_g7.5_s30_seed42.png)
 
-Default-tier render: phone bottom-left, multi-plate arrangement around it, marble countertop. Clean and on-brief — no overlay; the scene is exactly what SD 1.5 produced.
+Default-tier render: phone bottom-left held by a hand, multi-plate arrangement around it, marble countertop. Composition is correct, but on close inspection: the phone screen shows a piece of salmon while the phone is pointed at a plate of roasted vegetables (scene-vs-screen mismatch); the "app" on the screen is a fullscreen photo with no UI chrome (status bar, action buttons, carb readout) — the brief was an ad for a *carb-estimation app* and nothing on the screen communicates that; no cutlery anywhere in frame.
 
 ![A — same coord at 50 steps, tighter food textures](screenshots/champion_A_sd15_50steps.png)
 
-Same coord at 50 steps. Broccoli florets and carrots resolve to distinct shapes — A responds visibly to step count past 30, with diminishing returns.
+Same coord at 50 steps. Broccoli florets and carrots resolve to distinct shapes — A does respond to step count past 30, with diminishing returns. The same defects from A1 carry over: scene-vs-screen mismatch (phone screen still shows salmon, phone pointed at veg), no UI on the on-screen "app", no cutlery. Hand-on-phone has a slight finger-merge on the index/middle finger.
 
 **Scheduler finding (A only — DDIM vs. DPM++ 2M was swept on Config A as a budget call):** at low step counts, DPM++ 2M converges visibly cleaner than DDIM at the same seed. Compare `output/images/A_0012_g7.5_s20_seed42_ddim.png` against `A_0013_g7.5_s20_seed42_dpmpp_2m.png` — same prompt, same seed, same 20 steps. See `output/analysis/axis_scheduler_A.png` for the full grid. DPM++ 2M was therefore fixed for B and C.
 
@@ -159,11 +159,11 @@ Same coord at 50 steps. Broccoli florets and carrots resolve to distinct shapes 
 
 ![B — SDXL magazine-spread render at g=7.5, 30 steps, seed 42](screenshots/champion_B_sdxl_magazine.png)
 
-Multiple plates of salmon, fresh herbs, lemon wedges, an oil bowl, hand-held phone as hero. This is what 135 s/image buys.
+The best of the six — multiple plates of salmon, fresh herbs, lemon wedges, an oil bowl. **But the right hand holding the chopsticks is anatomically off**: the thumb is rendered on the wrong side of the chopsticks, and the index-finger grip is contorted. The phone screen *does* show the same salmon as the tray underneath (so the scene-vs-screen mismatch goes away on this one), but the on-screen "app" is again just a fullscreen photo with no UI — nothing carb-app-specific.
 
 ![B — same coord at 50 steps; sweater texture resolves](screenshots/champion_B_sdxl_50steps.png)
 
-At 50 steps the cable-knit pattern on the sleeve resolves cleanly. Both A and B reward extra steps, but B starts from a much higher baseline.
+At 50 steps the cable-knit pattern on the sleeve resolves cleanly. The right-hand defect is worse here than at 30 steps: **one hand simultaneously holds a fork and a knife**, fingers visibly tangled, no natural eating posture. The phone screen shows salmon and matches the tray. Bottom-edge tray salmon has visible texture artifacts (the herb garnish blurs into the salmon flesh). Both A and B reward extra steps, but B starts from a higher baseline *and* a higher defect baseline — more compute does not fix the hand problem.
 
 **SDXL failure mode worth naming:** at g=12, SDXL hallucinates a *second photo inside the phone's screen* — a viewfinder that was not asked for (`output/images/B_0050_g12_s30_seed42_dpmpp_2m.png`). A "more is more" failure: extra guidance pushed the model to over-resolve a plausible but unprompted element.
 
@@ -173,11 +173,11 @@ The LoRA exposes a knob A does not have: `lora_scale`. Three values were swept (
 
 ![C — lora_scale 0.7: glossy hero plate, the recommended setting](screenshots/champion_C_lora0.7_glossy.png)
 
-At `lora_scale = 0.7`, the LoRA's 3D-render aesthetic dominates: dark serving trays, glossy reflective sheen, saturated colour. Distinct from anything A produces, while still parseable as a food ad.
+At `lora_scale = 0.7`, the LoRA's 3D-render aesthetic dominates: dark serving trays, glossy reflective sheen, saturated colour. **But the scene falls apart on inspection**: the top-right bowl shows what looks like raw grains or seeds, not a side dish; the on-phone screen is filled with the same raw-grain texture rather than the food being photographed; there is no cutlery; the LoRA has pulled the composition toward generic dark-tray product photography that no longer reads as a "person photographing dinner" scene.
 
 ![C — lora_scale 0.4: subtle, framing still matches A](screenshots/champion_C_lora0.4_subtle.png)
 
-At `lora_scale = 0.4`, the framing still includes the phone and marble (much like A), but the food has the LoRA's glossy finish. This is the "before" in a before/after pair with the 0.7 image.
+At `lora_scale = 0.4`, the framing still includes the phone and marble (much like A), but the food has the LoRA's glossy finish. The same scene-vs-screen mismatch as in A1/A2 returns (phone screen does not match what the phone is pointed at), the top-right bowl is again raw grains, and there is no cutlery. This is the "before" in a before/after pair with the 0.7 image.
 
 **LoRA composition trade-off (the most interesting finding of axis 2):** at `lora_scale ≥ 0.7` the LoRA begins to override parts of the prompt. The LoRA was trained on product-render shots without phones, and at strength 1.0 it removes the in-scene phone and the photographer's hand entirely — pulling the scene toward generic dark-tray product photography (`output/images/C_0098_g12_s30_seed42_dpmpp_2m_lora1.png`). The full strength grid is `output/analysis/axis_lora_C.png`. **0.7 is the recommended setting** — strong style, prompt still mostly honoured.
 
@@ -194,20 +194,43 @@ The combined table — performance numbers from `output/param_log.jsonl`, visual
 | Peak memory | 7.5 GB | 21.8 GB (near 24 GB ceiling) | 8.1 GB |
 | Cold-cache download | ~4 GB | ~13 GB (fp32) → 22 min | +150 MB on top of A |
 | Composition quality (visual) | Competent flat-lay, simple | Magazine-spread, rich props, hero element clear | Same as A but with style overlay |
-| Production value (visual) | Modest — looks like a school project | High — looks like a real campaign | Stylised — looks like a 3D product render |
+| Production value (visual) | Modest — looks like a stock food photo, defects visible on inspection | Highest of the three, but anatomical hand defects on every variant | Stylised but scene-incoherent; on-screen content doesn't match scene |
 | Prompt adherence | Strong | Strong | Strong at α≤0.7, breaks at α=1.0 |
 | Guidance sensitivity (g=5/7.5/12) | Subtle | Marked: 5 washed, 7.5 editorial, 12 over-saturated | Inherits A's, plus LoRA dampens slightly |
 | Step-count sensitivity (20/30/50) | Diminishing past 30 | Diminishing past 30; 50 buys cleaner fabric/skin | Diminishing past 30 |
 | Unique control knob | — | — | `lora_scale` ∈ [0.4, 1.0] — continuous style mix |
-| One-line verdict | Cheap, predictable, modest | Slow, heavy, *clearly the best* output | Same cost as A, different aesthetic axis |
+| One-line verdict | Cheap, predictable, scene-vs-screen mismatch | Slow, heavy, highest production value *and* the worst hand anatomy | Same cost as A, strong style axis but worst scene coherence |
 
 Full per-axis breakdowns and contact sheets live in [`output/analysis/comparison_tables.md`](output/analysis/comparison_tables.md) and the `output/analysis/axis_*.png` grids.
+
+### 5.7 Visual defects — honest critique of all six champions
+
+The summary table above hides defects under one-line verdicts. None of these images would ship as a real ad without retouching. The defects are listed per-image so the comparison can be re-judged on *what each model actually produced*, not on optimistic captions.
+
+| Image | Hands / anatomy | Scene-vs-screen match | Cutlery | App / UI on phone | Other |
+|---|---|---|---|---|---|
+| **A1** (SD 1.5, g=7.5/s=30) | Hand holding phone OK at thumbnail size; index/middle fingers slightly merged | **No** — screen shows salmon, phone pointed at veg plate | None visible | Fullscreen photo, no app UI, no carb readout | Bottom-left plate clipped at canvas edge |
+| **A2** (SD 1.5, g=7.5/s=50) | Same finger-merge on holding hand | **No** — same mismatch as A1 | None | Same as A1 — no UI | Top-right plate composition slightly cleaner than A1 |
+| **B1** (SDXL, g=7.5/s=30) | **Right hand grip on chopsticks is wrong** — thumb on wrong side, contorted index finger | Yes — screen salmon matches tray salmon below | Gold chopsticks (only B-config has cutlery) | Fullscreen photo, no carb-app UI | Two salmon plates (phone screen + tray) read as duplication |
+| **B2** (SDXL, g=7.5/s=50) | **One hand holding fork *and* knife simultaneously** — fingers tangled, no natural eating posture | Yes — screen salmon matches tray | Gold fork + knife in same hand | Fullscreen photo, no carb-app UI | Herb garnish blurs into salmon texture on bottom tray |
+| **C1** (LoRA 0.4, g=7.5/s=30) | Hand on phone OK; thumb position believable | **No** — screen content doesn't match the food in foreground | None | Fullscreen photo, no app UI | Top-right bowl looks like raw grains / seeds, not a finished side dish |
+| **C2** (LoRA 0.7, g=7.5/s=50) | Hand on phone OK | **No** — screen filled with raw-grain texture | None | No app UI; phone screen filled with grain texture | LoRA pulled scene toward "dark-tray product photography"; no longer reads as a person *photographing* dinner |
+
+**Systematic problems across configs (not specific to any one champion):**
+
+1. **The on-phone "app" is never an app.** All six images render the phone screen as a fullscreen photo. No status bar, no buttons, no carb readout, no macro breakdown — none of the things that would make this read as an ad for a *carb-estimation* app rather than a generic food photo. The prompt asked for a person photographing a meal; it did not (and could not, given CLIP's representational limits) describe specific UI chrome.
+2. **Scene-vs-screen mismatch on 4 of 6.** Only B1 and B2 render the food on the phone screen as the same food being photographed. A and C consistently show salmon-on-screen while the phone points at a veg plate (A) or grain bowl (C). Diffusion models do not have a "screen-shows-what-phone-points-at" prior — they treat the phone screen as just another image-shaped region to fill.
+3. **No usable cutlery in 4 of 6.** Only B includes cutlery (chopsticks B1, fork+knife B2) — and in both B variants the grip is wrong. A and C have nothing to eat with, despite the brief being a "dinner" shot.
+4. **No hand without a defect.** Either a finger merge (A), a grip impossibility (B), or — most often — hands are simply cropped out of the frame to avoid drawing them (C2 hides the hand behind the tray). Hands remain a known weak spot for SD-family models at these resolutions.
+5. **CLIP truncation is biting the style cues.** The prompt's tail `"glossy textures, shallow depth of field, apple-keynote editorial aesthetic, ultra-detailed, 8k food product photography"` is dropped at 77 tokens — visible in the regen log. A and C lose those cues entirely; SDXL (dual encoder) retains more. The "school project" feel of A is partly real model limit, partly never having seen the style words.
+
+**What a real production pipeline would do here** (not in scope for this comparison, listed for honesty): ControlNet for hand pose, inpainting to fix grips and screen content, or stitching a real product UI mockup onto the phone screen post-hoc. The point of this project was to compare *what each base config produces unaided* — and the honest answer is that none of them produce a shippable ad on a single prompt.
 
 ---
 
 ## 6. Cross-axis takeaways
 
-1. **B is 4.6× slower than A and 2.9× the memory**, but at the same seed/guidance/steps it produces visibly higher-quality compositions. The trade is real and measurable, not subjective.
+1. **B is 4.6× slower than A and 2.9× the memory**, and at the same seed/guidance/steps it produces visibly richer compositions — *but* the hand-anatomy and grip defects in B1/B2 (§5.7) make B's output no more shippable than A's in absolute terms. The extra compute buys *production value* (lighting, props, depth), not *correctness* (hands, screens, cutlery).
 2. **C buys a strong stylistic axis for nearly free in compute** (+11% time, +8% memory). The actual cost of LoRA in this project is the *narrative* one: the LoRA's training distribution overrides parts of the prompt at `lora_scale ≥ 0.7`.
 3. **Scheduler matters on SD 1.5 at low step counts.** DPM++ 2M > DDIM, especially at 20 steps. Fixing DPM++ 2M for B and C was the right budget call.
 4. **Comparison validity outranks marketing polish.** Earlier pipelines stitched the real L41 UI screenshot onto every output for "accuracy". That move biased the comparison — overlay placement interacted with what the model drew (the "two phones" problem, §7), and the model's text-rendering ability was masked. Dropping the overlay made every config's scene generation directly comparable. The L41 UI belongs in the L41 README; this project compares scene generation.
